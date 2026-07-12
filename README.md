@@ -1,5 +1,11 @@
 # FloraFlow - Nursery Management System
-
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS">
+</div>
 ## Aim & Objective
 FloraFlow is a fully normalized, web-based relational database management system designed to bridge the gap between traditional nursery operations and modern technology. The objective of this project is to eliminate the financial losses and poor plant health associated with manual, paper-based tracking by automating inventory management, point-of-sale (POS) transactions, and daily staff management and plant care schedules so plant health is never compromised.
 
