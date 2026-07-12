@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FloraFlow — {% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f0f7f4;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #1b4332, #40916c);
+            padding: 20px 0;
+            position: fixed;
+            width: 220px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+    display: none;
+        }
+
+        .sidebar {
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
+        }
+
+        .sidebar .logoText {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 10px 0 30px 0;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #d8f3dc;
+            padding: 12px 24px;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+        }
+
+        .mainContent {
+            margin-left: 220px;
+            padding: 30px;
+        }
+
+        .topBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topBar h4 {
+            color: #1b4332;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border: none;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, #1b4332, #40916c);
+            color: white;
+        }
+
+        .btn-flora {
+            background: linear-gradient(135deg, #1b4332, #40916c);
+            color: white;
+            border: none;
+        }
+
+        .btn-flora:hover {
+            background: linear-gradient(135deg, #40916c, #1b4332);
+            color: white;
+        }
+
+        .alertBadge {
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 7px;
+            font-size: 0.75rem;
+            margin-left: 6px;
+        }
+
+        /* Global Stat Card Styles for Dashboards */
+        .statCard {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            height: 100%;
+        }
+
+        .statCard .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1b4332;
+        }
+
+        .statCard .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .statCard .icon {
+            font-size: 2rem;
+            color: #40916c;
+        }
+
+            {
+
+
+            % block extraStyles %
+        }
+
+            {
+            % endblock %
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="logoText">FloraFlow</div>
+
+        <!-- Dashboard Link Logic -->
+        {% if session['role'] == 'admin' %}
+        <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">
+            <i class="bi bi-house me-2"></i>Admin Dashboard</a>
+        <a href="/plants" class="{% if request.path == '/plants' %}active{% endif %}">
+            <i class="bi bi-flower1 me-2"></i>Plants</a>
+        <a href="/accessories" class="{% if request.path == '/accessories' %}active{% endif %}">
+            <i class="bi bi-basket me-2"></i>Accessories</a>
+        {% else %}
+        <a href="/staffDashboard" class="{% if request.path == '/staffDashboard' %}active{% endif %}">
+            <i class="bi bi-person-workspace me-2"></i>My Dashboard</a>
+        {% endif %}
+
+        <!-- Shared Links -->
+        <a href="/pos" class="{% if request.path == '/pos' %}active{% endif %}">
+            <i class="bi bi-cart me-2"></i>POS</a>
+        <a href="/salesHistory" class="{% if request.path == '/salesHistory' %}active{% endif %}">
+            <i class="bi bi-clock-history me-2"></i>Sales History</a>
+
+        <!-- Admin Only -->
+        {% if session['role'] == 'admin' %}
+        <a href="/procurement" class="{% if request.path == '/procurement' %}active{% endif %}">
+            <i class="bi bi-box me-2"></i>Procurement</a>
+        <a href="/staff" class="{% if request.path == '/staff' %}active{% endif %}">
+            <i class="bi bi-people me-2"></i>Staff</a>
+        {% endif %}
+
+        <!-- Shared Links -->
+        <a href="/attendance" class="{% if request.path == '/attendance' %}active{% endif %}">
+            <i class="bi bi-clipboard me-2"></i>Attendance</a>
+        <a href="/tasks" class="{% if request.path == '/tasks' %}active{% endif %}">
+            <i class="bi bi-check2-square me-2"></i>Tasks</a>
+        <a href="/careSchedule" class="{% if request.path == '/careSchedule' %}active{% endif %}">
+            <i class="bi bi-droplet me-2"></i>Care Schedule</a>
+
+        <!-- Admin Only -->
+        {% if session['role'] == 'admin' %}
+        <a href="/alerts" class="{% if request.path == '/alerts' %}active{% endif %}">
+            <i class="bi bi-bell me-2"></i>Alerts
+            {% if unreadAlerts and unreadAlerts > 0 %}
+            <span class="alertBadge">{{ unreadAlerts }}</span>
+            {% endif %}
+        </a>
+        <a href="/reports" class="{% if request.path == '/reports' %}active{% endif %}">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Reports</a>
+        {% endif %}
+
+        <!-- Logout -->
+        <a href="/logout" style="margin-top: 40px; color: #ffb3b3;">
+            <i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </div>
+
+    <div class="mainContent">
+        <div class="topBar">
+            <h4>{% block pageTitle %}{% endblock %}</h4>
+            <span class="text-muted">Welcome, {{ session['fullName'] }}</span>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} py-2">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block extraScripts %}{% endblock %}
+
+</body>
+
+</html>

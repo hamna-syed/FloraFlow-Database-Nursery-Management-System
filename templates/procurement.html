@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}Procurement{% endblock %}
+{% block pageTitle %}<i class="bi bi-box me-2"></i>Procurement{% endblock %}
+
+{% block extraStyles %}
+.cartTable thead { background: linear-gradient(135deg, #1b4332, #40916c); color: white; }
+.totalRow { font-size: 1.2rem; font-weight: 700; color: #1b4332; }
+.historyTable thead { background: linear-gradient(135deg, #1b4332, #40916c); color: white; }
+{% endblock %}
+
+{% block content %}
+<form method="POST" action="/addPurchase" id="purchaseForm">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card p-4 mb-4">
+                <h5 style="color: #1b4332;">Supplier Info</h5>
+                <div class="row mt-2">
+                    <div class="col-md-12 mb-2">
+                        <label class="form-label">Supplier <span class="text-danger">*</span></label>
+                        <select name="supplierId" id="supplierSelect" class="form-select" required>
+                            <option value="">Select Supplier</option>
+                            {% for s in allSuppliers %}
+                            <option value="{{ s.supplierId }}">{{ s.supplierName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4 mb-4">
+                <h5 style="color: #1b4332;">Add Plants</h5>
+                <div class="row mt-2">
+                    <div class="col-md-5">
+                        <select id="plantSelect" class="form-select">
+                            <option value="">Select Plant</option>
+                            {% for plant in allPlants %}
+                            <option value="{{ plant.plantId }}" data-price="{{ plant.price }}"
+                                data-name="{{ plant.plantName }}">
+                                {{ plant.plantName }} — Rs. {{ plant.price }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" id="plantQty" class="form-control" placeholder="Qty" min="1" value="1">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" step="0.01" id="plantCost" class="form-control" placeholder="Unit Cost"
+                            min="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-flora w-100" onclick="addToCart('plant')">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h5 style="color: #1b4332;">Add Accessories</h5>
+                <div class="row mt-2">
+                    <div class="col-md-5">
+                        <select id="accessorySelect" class="form-select">
+                            <option value="">Select Accessory</option>
+                            {% for acc in allAccessories %}
+                            <option value="{{ acc.accessoryId }}" data-price="{{ acc.price }}"
+                                data-name="{{ acc.accessoryName }}">
+                                {{ acc.accessoryName }} — Rs. {{ acc.price }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" id="accessoryQty" class="form-control" placeholder="Qty" min="1" value="1">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" step="0.01" id="accessoryCost" class="form-control" placeholder="Unit Cost"
+                            min="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-flora w-100" onclick="addToCart('accessory')">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4">
+                <h5 style="color: #1b4332;">Purchase Cart</h5>
+                <table class="table cartTable mt-2">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody">
+                        <tr>
+                            <td colspan="4" class="text-muted text-center">No items added</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div id="cartTotal" class="totalRow text-end mt-2" style="display:none;">
+                    Total Cost: Rs. <span id="totalAmount">0.00</span>
+                </div>
+
+                <hr>
+
+                <div id="cartHiddenInputs"></div>
+
+                <button type="submit" class="btn btn-flora w-100 mt-2">
+                    <i class="bi bi-check-circle me-2"></i>Confirm Purchase
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="card p-4 mt-4">
+    <h5 class="mb-3" style="color: #1b4332;">Purchase History</h5>
+    <table class="table table-hover historyTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Supplier</th>
+                <th>Recorded By</th>
+                <th>Total Cost</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if allPurchases %}
+            {% for p in allPurchases %}
+            <tr>
+                <td>{{ p.purchaseId }}</td>
+                <td>{{ p.purchaseDate.strftime('%d %b %Y, %I:%M %p') if p.purchaseDate else '—' }}</td>
+                <td>{{ p.supplierName }}</td>
+                <td>{{ p.staffName }}</td>
+                <td><strong>Rs. {{ '{:,.2f}'.format(p.totalCost) }}</strong></td>
+                <td>
+                    <a href="/purchaseDetail/{{ p.purchaseId }}" class="btn btn-sm btn-flora">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">No purchases recorded yet.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extraScripts %}
+<script>
+    let cart = [];
+
+    function addToCart(type) {
+        let select = type === 'plant' ? document.getElementById('plantSelect') : document.getElementById('accessorySelect');
+        let qtyInput = type === 'plant' ? document.getElementById('plantQty') : document.getElementById('accessoryQty');
+        let costInput = type === 'plant' ? document.getElementById('plantCost') : document.getElementById('accessoryCost');
+        let selectedOption = select.options[select.selectedIndex];
+
+        if (!selectedOption.value) { alert('Please select an item'); return; }
+
+        let id = selectedOption.value;
+        let name = selectedOption.dataset.name;
+        let qty = parseInt(qtyInput.value);
+        let cost = parseFloat(costInput.value);
+
+        if (!qty || qty < 1) { alert('Quantity must be at least 1'); return; }
+        if (!cost || cost <= 0) { alert('Unit cost must be greater than 0'); return; }
+
+        let existing = cart.find(item => item.type === type && item.id === id);
+        if (existing) {
+            existing.qty += qty;
+            existing.cost = cost; // update to latest cost
+        } else {
+            cart.push({ type, id, name, cost, qty });
+        }
+
+        // Reset inputs
+        select.selectedIndex = 0;
+        qtyInput.value = 1;
+        costInput.value = '';
+
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        let cartBody = document.getElementById('cartBody');
+        let cartTotal = document.getElementById('cartTotal');
+        let totalAmount = document.getElementById('totalAmount');
+        let hiddenInputs = document.getElementById('cartHiddenInputs');
+
+        cartBody.innerHTML = '';
+        hiddenInputs.innerHTML = '';
+
+        if (cart.length === 0) {
+            cartBody.innerHTML = '<tr><td colspan="4" class="text-muted text-center">No items added</td></tr>';
+            cartTotal.style.display = 'none';
+            return;
+        }
+
+        let total = 0;
+        cart.forEach((item, index) => {
+            let subtotal = item.cost * item.qty;
+            total += subtotal;
+            cartBody.innerHTML += `
+                <tr>
+                    <td>${item.name} <small class="text-muted">(${item.type})</small></td>
+                    <td>${item.qty}</td>
+                    <td>Rs. ${subtotal.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeFromCart(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button></td>
+                </tr>`;
+            hiddenInputs.innerHTML += `
+                <input type="hidden" name="itemType[]" value="${item.type}">
+                <input type="hidden" name="itemId[]" value="${item.id}">
+                <input type="hidden" name="itemQuantity[]" value="${item.qty}">
+                <input type="hidden" name="unitCost[]" value="${item.cost}">`;
+        });
+
+        totalAmount.textContent = total.toFixed(2);
+        cartTotal.style.display = 'block';
+    }
+
+    document.getElementById('purchaseForm').addEventListener('submit', function (e) {
+        let supplier = document.getElementById('supplierSelect').value;
+
+        if (!supplier) {
+            e.preventDefault();
+            alert('Please select a supplier');
+            return;
+        }
+
+        if (cart.length === 0) {
+            e.preventDefault();
+            alert('Please add at least one item to the purchase');
+            return;
+        }
+    });
+</script>
+{% endblock %}

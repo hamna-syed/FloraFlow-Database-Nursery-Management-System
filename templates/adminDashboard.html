@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block pageTitle %}<i class="bi bi-house me-2"></i>Admin Dashboard{% endblock %}
+
+{% block extraStyles %}
+.statCard { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+margin-bottom: 20px; height: 100%;}
+.statCard .number { font-size: 2rem; font-weight: 700; color: #1b4332; }
+.statCard .label { color: #6c757d; font-size: 0.9rem; }
+.statCard .icon { font-size: 2rem; color: #40916c; }
+
+/* NEW: Dedicated taller container specifically for the Revenue chart */
+.chart-container-revenue { position: relative; height: 380px; width: 100%; padding: 10px; }
+
+/* Existing containers for the bottom row */
+.chart-container-donut { position: relative; height: 280px; width: 100%; display: flex; justify-content: center;
+padding: 10px; }
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="statCard">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="number">{{ totalPlants }}</div>
+                    <div class="label">Total Plants</div>
+                </div>
+                <div class="icon"><i class="bi bi-flower1"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="statCard">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="number">{{ totalAccessories }}</div>
+                    <div class="label">Total Accessories</div>
+                </div>
+                <div class="icon"><i class="bi bi-basket"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="statCard">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="number">{{ totalStaff }}</div>
+                    <div class="label">Active Staff</div>
+                </div>
+                <div class="icon"><i class="bi bi-people"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="statCard">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="number">{{ totalSales }}</div>
+                    <div class="label">Total Sales</div>
+                </div>
+                <div class="icon"><i class="bi bi-cart"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4 mb-4 mt-2">
+    <h5 style="color: #1b4332;" class="mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Low Stock Items</h5>
+    {% if lowStock %}
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in lowStock %}
+            <tr>
+                <td>{{ item.itemType }}</td>
+                <td>{{ item.itemId }}</td>
+                <td>{{ item.itemName }}</td>
+                <td><span class="badge bg-danger">{{ item.quantity }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No low stock items.</p>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card p-4">
+            <h5 style="color: #1b4332;">Revenue (Last 7 Days)</h5>
+            <div class="chart-container-revenue">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100 d-flex flex-column">
+            <h5 style="color: #1b4332;">Top Selling Plants</h5>
+            <div id="dynamicBarContainer" class="flex-grow-1 w-100" style="position: relative; padding: 10px;">
+                <canvas id="topPlantsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100 d-flex flex-column align-items-center">
+            <h5 style="color: #1b4332; width: 100%;">Sales by Category</h5>
+            <div class="chart-container-donut">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extraScripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    Chart.register(ChartDataLabels);
+
+    const revData = {{ revenueData | tojson }};
+    const topPlantsData = {{ topPlantsData | tojson }};
+    const catData = {{ categoryData | tojson }};
+
+    const revCtx = document.getElementById('revenueChart').getContext('2d');
+    const topCtx = document.getElementById('topPlantsChart').getContext('2d');
+
+    // Revenue Gradient
+    let revGradient = revCtx.createLinearGradient(0, 0, 0, 400);
+    revGradient.addColorStop(0, 'rgba(64, 145, 108, 0.6)');
+    revGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+    // RESTORED: Darker, bolder gradient for the Bar Chart
+    let barGradient = topCtx.createLinearGradient(0, 0, 500, 0);
+    barGradient.addColorStop(0, '#1b4332'); // Starts dark green
+    barGradient.addColorStop(1, '#95d5b2'); // Blends to pale green
+
+    const donutGradientPalette = ['#1b4332', '#2d6a4f', '#40916c', '#52b788', '#74c69d'];
+
+    const barContainer = document.getElementById('dynamicBarContainer');
+    const calculatedHeight = Math.max(300, topPlantsData.length * 50);
+    barContainer.style.height = calculatedHeight + 'px';
+
+    // --- REVENUE LINE CHART ---
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revData.map(d => d.saleDay),
+            datasets: [{
+                label: 'Daily Revenue',
+                data: revData.map(d => d.dailyTotal),
+                borderColor: '#1b4332',
+                backgroundColor: revGradient,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            maintainAspectRatio: false, // Critical setting: Forces the chart to fill the new 380px tall div
+            plugins: {
+                datalabels: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return ' Revenue: Rs. ' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return 'Rs. ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // --- TOP PLANTS HORIZONTAL BAR CHART ---
+    new Chart(document.getElementById('topPlantsChart'), {
+        type: 'bar',
+        data: {
+            labels: topPlantsData.map(d => d.plantName),
+            datasets: [{
+                label: 'Quantity Sold',
+                data: topPlantsData.map(d => d.qty),
+                backgroundColor: barGradient,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            plugins: {
+                datalabels: { display: false }
+            }
+        }
+    });
+
+    // --- CATEGORY DOUGHNUT CHART ---
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catData.map(d => d.categoryName),
+            datasets: [{
+                data: catData.map(d => d.qty),
+                backgroundColor: donutGradientPalette,
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                datalabels: {
+                    color: '#ffffff',
+                    font: { weight: 'bold', size: 14 },
+                    formatter: (value, ctx) => {
+                        let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        if (sum === 0) return '0%';
+                        let percentage = Math.round((value * 100) / sum) + "%";
+                        return percentage;
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

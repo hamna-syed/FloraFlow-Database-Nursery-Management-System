@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block pageTitle %}<i class="bi bi-file-earmark-pdf me-2"></i>Reports{% endblock %}
+
+{% block content %}
+
+<!-- Sales Report -->
+<div class="card p-4 mb-4">
+    <h5 style="color:#1b4332;">Sales Report</h5>
+    <form method="GET" action="/reports" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">From</label>
+            <input type="date" name="salesFrom" class="form-control" value="{{ salesFrom }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">To</label>
+            <input type="date" name="salesTo" class="form-control" value="{{ salesTo }}">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-flora w-100">Apply</button>
+        </div>
+        <div class="col-md-3">
+            <a class="btn btn-secondary w-100"
+                href="/reports/sales/pdf?salesFrom={{ salesFrom }}&salesTo={{ salesTo }}">Download PDF</a>
+        </div>
+    </form>
+
+    <div class="mt-3">
+        <p><strong>Total Revenue:</strong> Rs. {{ '{:,.2f}'.format(totalSales) }}</p>
+        <p><strong>Top Staff:</strong> {{ topStaff }}</p>
+    </div>
+
+    <table class="table table-hover mt-2">
+        <thead>
+            <tr>
+                <th>Staff</th>
+                <th>Total Sales</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in salesByStaff %}
+            <tr>
+                <td>{{ r.fullName }}</td>
+                <td>Rs. {{ '{:,.2f}'.format(r.total) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Top Selling Plants -->
+<div class="card p-4 mb-4">
+    <h5 style="color:#1b4332;">Top Selling Plants</h5>
+    <form method="GET" action="/reports" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">From</label>
+            <input type="date" name="topFrom" class="form-control" value="{{ topFrom }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">To</label>
+            <input type="date" name="topTo" class="form-control" value="{{ topTo }}">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-flora w-100">Apply</button>
+        </div>
+        <div class="col-md-3">
+            <a class="btn btn-secondary w-100"
+                href="/reports/topSelling/pdf?topFrom={{ topFrom }}&topTo={{ topTo }}">Download PDF</a>
+        </div>
+    </form>
+
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Plant</th>
+                <th>Quantity Sold</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in topPlants %}
+            <tr>
+                <td>{{ r.plantName }}</td>
+                <td>{{ r.qty }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Low Stock Report -->
+<div class="card p-4 mb-4">
+    <h5 style="color:#1b4332;">Low Stock Report</h5>
+    <a class="btn btn-secondary mb-3" href="/reports/lowStock/pdf">Download PDF</a>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in lowStock %}
+            <tr>
+                <td>{{ r.itemType }}</td>
+                <td>{{ r.itemName }}</td>
+                <td><span class="badge bg-danger">{{ r.quantity }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Attendance Report -->
+<div class="card p-4">
+    <h5 style="color:#1b4332;">Attendance Report</h5>
+    <form method="GET" action="/reports" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">Month</label>
+            <input type="month" name="attMonth" class="form-control" value="{{ attMonth }}">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-flora w-100">Apply</button>
+        </div>
+        <div class="col-md-3">
+            <a class="btn btn-secondary w-100" href="/reports/attendance/pdf?attMonth={{ attMonth }}">Download PDF</a>
+        </div>
+    </form>
+
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Staff</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Late</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in attendanceSummary %}
+            <tr>
+                <td>{{ r.fullName }}</td>
+                <td>{{ r.presentCount }}</td>
+                <td>{{ r.absentCount }}</td>
+                <td>{{ r.lateCount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

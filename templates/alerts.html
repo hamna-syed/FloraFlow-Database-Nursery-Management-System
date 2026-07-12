@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Alerts{% endblock %}
+{% block pageTitle %}<i class="bi bi-bell me-2"></i>System Alerts{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" style="color:#1b4332;">All Alerts</h5>
+        <a href="/markAllAlertsRead" class="btn btn-sm btn-flora">
+            <i class="bi bi-check2-circle me-1"></i>Mark All as Read
+        </a>
+    </div>
+</div>
+
+<div class="card p-4">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if allAlerts %}
+            {% for a in allAlerts %}
+            <tr class="{% if a.isRead == 0 %}table-warning{% else %}text-muted{% endif %}">
+                <td>
+                    {% if a.alertType == 'careSchedule' %}
+                    <span class="badge bg-danger">Care Overdue</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Low Stock</span>
+                    {% endif %}
+                </td>
+                <td>{{ a.message }}</td>
+                <td>{{ a.createdAt.strftime('%d %b %Y, %I:%M %p') }}</td>
+                <td>
+                    {% if a.isRead == 0 %}
+                    <a href="/markAlertRead/{{ a.alertId }}" class="btn btn-sm btn-flora">
+                        Mark Read
+                    </a>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">No alerts found.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

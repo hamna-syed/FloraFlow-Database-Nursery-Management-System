@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Care Schedule{% endblock %}
+{% block pageTitle %}<i class="bi bi-droplet me-2"></i>Care Schedule{% endblock %}
+
+{% block content %}
+
+{% if role == 'admin' %}
+<div class="card p-4 mb-4">
+    <h5 style="color:#1b4332;">Add New Care Entry</h5>
+    <form method="POST" action="/addCareSchedule" class="row mt-2">
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Plant</label>
+            <select name="plantId" class="form-select" required>
+                <option value="">Select Plant</option>
+                {% for p in allPlants %}
+                <option value="{{ p.plantId }}">{{ p.plantName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Care Type</label>
+            <input type="text" name="careType" class="form-control" required>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Next Check</label>
+            <input type="date" name="nextCheck" class="form-control" required>
+        </div>
+        <div class="col-md-2 mb-2">
+            <label class="form-label">Notes</label>
+            <input type="text" name="notes" class="form-control">
+        </div>
+        <div class="col-md-12 mt-2">
+            <button class="btn btn-flora px-4">
+                <i class="bi bi-plus-circle me-2"></i>Add Schedule
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div class="card p-4">
+    <h5 style="color:#1b4332;">All Care Schedules</h5>
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Plant</th>
+                <th>Care Type</th>
+                <th>Last Done</th>
+                <th>Next Check</th>
+                <th>Notes</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if schedules %}
+            {% for c in schedules %}
+            {% if c.nextCheck < today %} <tr class="table-danger">
+                {% elif c.nextCheck == today %}
+                <tr class="table-warning">
+                    {% else %}
+                <tr class="table-success">
+                    {% endif %}
+                    <td>{{ c.plantName }}</td>
+                    <td>{{ c.careType }}</td>
+                    <td>{{ c.lastCheck if c.lastCheck else '—' }}</td>
+                    <td>{{ c.nextCheck }}</td>
+                    <td>{{ c.notes or '—' }}</td>
+                    <td>
+                        <a href="/markCareDone/{{ c.careId }}" class="btn btn-sm btn-flora">
+                            <i class="bi bi-check2-circle me-1"></i>Mark Done
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No care schedules found.</td>
+                </tr>
+                {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

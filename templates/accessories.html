@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Accessories{% endblock %}
+{% block pageTitle %}<i class="bi bi-basket me-2"></i>Accessories Management{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-4">
+    <h5 class="mb-3" style="color: #1b4332;">Add New Accessory</h5>
+    <form method="POST" action="/addAccessory">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Accessory Name</label>
+                <input type="text" name="accessoryName" class="form-control" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Price (Rs.)</label>
+                <input type="number" name="price" step="0.01" class="form-control" required>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Quantity</label>
+                <input type="number" name="quantity" class="form-control" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Description</label>
+                <input type="text" name="description" class="form-control">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-flora px-4">
+            <i class="bi bi-plus-circle me-2"></i>Add Accessory
+        </button>
+    </form>
+</div>
+
+<div class="card p-4">
+    <h5 class="mb-3" style="color: #1b4332;">All Accessories</h5>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in allAccessories %}
+            <tr>
+                <td>{{ item.accessoryId }}</td>
+                <td>{{ item.accessoryName }}</td>
+                <td>Rs. {{ item.price }}</td>
+                <td>
+                    {% if item.quantity < 5 %} <span class="badge bg-danger">{{ item.quantity }}</span>
+                        {% else %}
+                        <span class="badge bg-success">{{ item.quantity }}</span>
+                        {% endif %}
+                </td>
+                <td>{{ item.description }}</td>
+                <td>
+                    <a href="/editAccessory/{{ item.accessoryId }}" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="/deleteAccessory/{{ item.accessoryId }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Are you sure?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

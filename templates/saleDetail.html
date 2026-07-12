@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Sale Detail{% endblock %}
+{% block pageTitle %}<i class="bi bi-receipt me-2"></i>Sale Detail{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-4">
+    <h5 style="color: #1b4332;">Sale Info</h5>
+    <div class="row mt-2">
+        <div class="col-md-3"><strong>Sale ID:</strong> #{{ sale.saleId }}</div>
+        <div class="col-md-3"><strong>Date:</strong> {{ sale.saleDate }}</div>
+        <div class="col-md-3"><strong>Customer:</strong> {{ sale.customerName or 'Walk-in' }}</div>
+        <div class="col-md-3"><strong>Phone:</strong> {{ sale.customerPhone or '—' }}</div>
+        <div class="col-md-3 mt-2"><strong>Staff:</strong> {{ sale.staffName }}</div>
+        <div class="col-md-3 mt-2"><strong>Payment:</strong> {{ sale.paymentMethod | capitalize }}</div>
+    </div>
+</div>
+
+<div class="card p-4 mb-4">
+    <h5 style="color: #1b4332;">Items</h5>
+    <table class="table mt-2">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in saleItems %}
+            <tr>
+                <td>{{ item.plantName or item.accessoryName }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>Rs. {{ item.unitPrice }}</td>
+                <td>Rs. {{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end fw-bold">Total:</td>
+                <td class="fw-bold" style="color: #1b4332;">Rs. {{ sale.totalBill }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<a href="/salesHistory" class="btn btn-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Back to Sales History
+</a>
+{% endblock %}

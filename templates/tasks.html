@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Tasks{% endblock %}
+{% block pageTitle %}<i class="bi bi-check2-square me-2"></i>Staff Tasks{% endblock %}
+
+{% block extraStyles %}
+.statusBadge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+{% endblock %}
+
+{% block content %}
+
+{% if role == 'admin' %}
+<div class="card p-4 mb-4">
+    <h5 style="color:#1b4332;">Assign New Task</h5>
+    <form method="POST" action="/addTask" class="row mt-2">
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Staff</label>
+            <select name="staffId" class="form-select" required>
+                <option value="">Select Staff</option>
+                {% for s in allStaff %}
+                <option value="{{ s.staffId }}">{{ s.fullName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 mb-2">
+            <label class="form-label">Task Name</label>
+            <input type="text" name="taskTitle" class="form-control" required>
+        </div>
+        <div class="col-md-4 mb-2">
+            <label class="form-label">Description</label>
+            <input type="text" name="taskDescription" class="form-control">
+        </div>
+        <div class="col-md-2 mb-2">
+            <label class="form-label">Due Date</label>
+            <input type="date" name="dueDate" class="form-control">
+        </div>
+        <div class="col-md-12 mt-2">
+            <button class="btn btn-flora px-4">
+                <i class="bi bi-plus-circle me-2"></i>Add Task
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div class="card p-4">
+    <h5 style="color:#1b4332;">All Tasks</h5>
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Description</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Date Assigned</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if allTasks %}
+            {% for t in allTasks %}
+            <tr>
+                <td>{{ t.taskTitle }}</td>
+                <td>{{ t.taskDescription or '—' }}</td>
+                <td>{{ t.fullName }}</td>
+                <td>
+                    {% if t.status == 'pending' %}
+                    <span class="statusBadge bg-warning text-dark">Pending</span>
+                    {% elif t.status == 'inProgress' %}
+                    <span class="statusBadge bg-primary text-white">In Progress</span>
+                    {% else %}
+                    <span class="statusBadge bg-success text-white">Completed</span>
+                    {% endif %}
+                </td>
+                <td>{{ t.assignedDate.strftime('%d %b %Y') }}</td>
+                <td>
+                    {% if t.status == 'pending' %}
+                    <form method="POST" action="/updateTaskStatus/{{ t.taskId }}" style="display:inline;">
+                        <input type="hidden" name="status" value="inProgress">
+                        <button class="btn btn-sm btn-primary"><i class="bi bi-play-fill"></i></button>
+                    </form>
+                    <form method="POST" action="/updateTaskStatus/{{ t.taskId }}" style="display:inline;">
+                        <input type="hidden" name="status" value="done">
+                        <button class="btn btn-sm btn-success"><i class="bi bi-check"></i></button>
+                    </form>
+                    {% elif t.status == 'inProgress' %}
+                    <form method="POST" action="/updateTaskStatus/{{ t.taskId }}" style="display:inline;">
+                        <input type="hidden" name="status" value="done">
+                        <button class="btn btn-sm btn-success"><i class="bi bi-check"></i></button>
+                    </form>
+                    {% endif %}
+
+                    {% if role == 'admin' %}
+                    <a href="/deleteTask/{{ t.taskId }}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Delete this task?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">No tasks found.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

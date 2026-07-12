@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Staff{% endblock %}
+{% block pageTitle %}<i class="bi bi-people me-2"></i>Staff Management{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-4">
+    <h5 class="mb-3" style="color: #1b4332;">Add New Staff Member</h5>
+    <form method="POST" action="/addStaff">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="fullName" class="form-control" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Username <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Password <span class="text-danger">*</span></label>
+                <input type="password" name="password" class="form-control" minlength="4" required>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Role <span class="text-danger">*</span></label>
+                <select name="role" class="form-select" required>
+                    <option value="staff" selected>Staff</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Designation</label>
+                <input type="text" name="designation" class="form-control" placeholder="e.g. Sales Associate">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Salary (Rs.)</label>
+                <input type="number" step="0.01" name="salary" class="form-control" min="0">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Hire Date <span class="text-danger">*</span></label>
+                <input type="date" name="hireDate" class="form-control" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" name="phone" class="form-control" placeholder="03XXXXXXXXX">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-flora px-4">
+            <i class="bi bi-person-plus me-2"></i>Add Staff
+        </button>
+    </form>
+</div>
+
+<div class="card p-4">
+    <h5 class="mb-3" style="color: #1b4332;">All Staff Members</h5>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Designation</th>
+                <th>Salary</th>
+                <th>Phone</th>
+                <th>Hire Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in allStaff %}
+            <tr>
+                <td>{{ s.staffId }}</td>
+                <td>
+                    {{ s.fullName }}
+                    {% if s.staffId == currentStaffId %}
+                    <span class="badge bg-info ms-1">You</span>
+                    {% endif %}
+                </td>
+                <td>{{ s.username }}</td>
+                <td>
+                    {% if s.role == 'admin' %}
+                    <span class="badge bg-success">Admin</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Staff</span>
+                    {% endif %}
+                </td>
+                <td>{{ s.designation or '—' }}</td>
+                <td>{% if s.salary %}Rs. {{ '{:,.0f}'.format(s.salary) }}{% else %}—{% endif %}</td>
+                <td>{{ s.phone or '—' }}</td>
+                <td>{{ s.hireDate.strftime('%d %b %Y') if s.hireDate else '—' }}</td>
+                <td>
+                    {% if s.isActive == 1 %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/editStaff/{{ s.staffId }}" class="btn btn-sm btn-warning" title="Edit Profile">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    {% if s.staffId != currentStaffId %}
+
+                    <form method="POST" action="/resetPassword/{{ s.staffId }}" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-dark" title="Reset Password"
+                            onclick="return confirm('Reset password for {{ s.fullName }} to the default: staff1234?')">
+                            <i class="bi bi-key"></i>
+                        </button>
+                    </form>
+
+                    {% if s.isActive == 1 %}
+                    <a href="/toggleStaff/{{ s.staffId }}" class="btn btn-sm btn-danger" title="Deactivate Account"
+                        onclick="return confirm('Deactivate {{ s.fullName }}?')">
+                        <i class="bi bi-person-x"></i>
+                    </a>
+                    {% else %}
+                    <a href="/toggleStaff/{{ s.staffId }}" class="btn btn-sm btn-success" title="Reactivate Account"
+                        onclick="return confirm('Reactivate {{ s.fullName }}?')">
+                        <i class="bi bi-person-check"></i>
+                    </a>
+                    {% endif %}
+
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

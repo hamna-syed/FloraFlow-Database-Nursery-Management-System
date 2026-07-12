@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block title %}POS{% endblock %}
+{% block pageTitle %}<i class="bi bi-cart me-2"></i>Point of Sale{% endblock %}
+
+{% block extraStyles %}
+.cartTable thead { background: linear-gradient(135deg, #1b4332, #40916c); color: white; }
+.totalRow { font-size: 1.2rem; font-weight: 700; color: #1b4332; }
+{% endblock %}
+
+{% block content %}
+<form method="POST" action="/completeSale" id="saleForm">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card p-4 mb-4">
+                <h5 style="color: #1b4332;">Customer Info</h5>
+                <div class="row mt-2">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Customer Name</label>
+                        <input type="text" name="customerName" class="form-control" placeholder="customer name">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="customerPhone" class="form-control" placeholder="03XX-XXXXXXX">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4 mb-4">
+                <h5 style="color: #1b4332;">Add Plants</h5>
+                <div class="row mt-2">
+                    <div class="col-md-7">
+                        <select id="plantSelect" class="form-select">
+                            <option value="">Select Plant</option>
+                            {% for plant in allPlants %}
+                            <option value="{{ plant.plantId }}" data-price="{{ plant.price }}"
+                                data-name="{{ plant.plantName }}">
+                                {{ plant.plantName }} — Rs. {{ plant.price }} (Stock: {{ plant.quantity }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" id="plantQty" class="form-control" placeholder="Qty" min="1" value="1">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-flora w-100" onclick="addToCart('plant')">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h5 style="color: #1b4332;">Add Accessories</h5>
+                <div class="row mt-2">
+                    <div class="col-md-7">
+                        <select id="accessorySelect" class="form-select">
+                            <option value="">Select Accessory</option>
+                            {% for acc in allAccessories %}
+                            <option value="{{ acc.accessoryId }}" data-price="{{ acc.price }}"
+                                data-name="{{ acc.accessoryName }}">
+                                {{ acc.accessoryName }} — Rs. {{ acc.price }} (Stock: {{ acc.quantity }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" id="accessoryQty" class="form-control" placeholder="Qty" min="1" value="1">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-flora w-100" onclick="addToCart('accessory')">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card p-4">
+                <h5 style="color: #1b4332;">Cart</h5>
+                <table class="table cartTable mt-2">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody">
+                        <tr>
+                            <td colspan="4" class="text-muted text-center">No items added</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div id="cartTotal" class="totalRow text-end mt-2" style="display:none;">
+                    Total: Rs. <span id="totalAmount">0.00</span>
+                </div>
+
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label">Payment Method</label>
+                    <select name="paymentMethod" class="form-select">
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+
+                <div id="cartHiddenInputs"></div>
+
+                <button type="submit" class="btn btn-flora w-100 mt-2">
+                    <i class="bi bi-check-circle me-2"></i>Complete Sale
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extraScripts %}
+<script>
+    let cart = [];
+
+    function addToCart(type) {
+        let select = type === 'plant' ? document.getElementById('plantSelect') : document.getElementById('accessorySelect');
+        let qtyInput = type === 'plant' ? document.getElementById('plantQty') : document.getElementById('accessoryQty');
+        let selectedOption = select.options[select.selectedIndex];
+
+        if (!selectedOption.value) { alert('Please select an item'); return; }
+
+        let id = selectedOption.value;
+        let name = selectedOption.dataset.name;
+        let price = parseFloat(selectedOption.dataset.price);
+        let qty = parseInt(qtyInput.value);
+
+        if (qty < 1) { alert('Quantity must be at least 1'); return; }
+
+        let existing = cart.find(item => item.type === type && item.id === id);
+        if (existing) { existing.qty += qty; }
+        else { cart.push({ type, id, name, price, qty }); }
+
+        renderCart();
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function renderCart() {
+        let cartBody = document.getElementById('cartBody');
+        let cartTotal = document.getElementById('cartTotal');
+        let totalAmount = document.getElementById('totalAmount');
+        let hiddenInputs = document.getElementById('cartHiddenInputs');
+
+        cartBody.innerHTML = '';
+        hiddenInputs.innerHTML = '';
+
+        if (cart.length === 0) {
+            cartBody.innerHTML = '<tr><td colspan="4" class="text-muted text-center">No items added</td></tr>';
+            cartTotal.style.display = 'none';
+            return;
+        }
+
+        let total = 0;
+        cart.forEach((item, index) => {
+            let subtotal = item.price * item.qty;
+            total += subtotal;
+            cartBody.innerHTML += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>Rs. ${subtotal.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeFromCart(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button></td>
+                </tr>`;
+            hiddenInputs.innerHTML += `
+                <input type="hidden" name="itemType[]" value="${item.type}">
+                <input type="hidden" name="itemId[]" value="${item.id}">
+                <input type="hidden" name="itemQuantity[]" value="${item.qty}">
+                <input type="hidden" name="itemPrice[]" value="${item.price}">`;
+        });
+
+        totalAmount.textContent = total.toFixed(2);
+        cartTotal.style.display = 'block';
+    }
+
+    // Phone validation
+    document.getElementById('saleForm').addEventListener('submit', function (e) {
+        let name = document.querySelector('input[name="customerName"]').value.trim();
+        let phone = document.querySelector('input[name="customerPhone"]').value.trim();
+
+        if (name && !phone) {
+            e.preventDefault();
+            alert('Please enter phone number for the customer');
+            return;
+        }
+
+        if (phone && (!/^\d{11}$/.test(phone))) {
+            e.preventDefault();
+            alert('Phone number must be exactly 11 digits');
+            return;
+        }
+
+        if (cart.length === 0) {
+            e.preventDefault();
+            alert('Please add at least one item to the cart');
+            return;
+        }
+    });
+</script>
+{% endblock %}

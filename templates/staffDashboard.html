@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block pageTitle %}<i class="bi bi-person-workspace me-2"></i>My Dashboard{% endblock %}
+
+{% block extraStyles %}
+.statCard { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); height:
+100%; }
+.task-item { border-left: 4px solid #40916c; padding-left: 10px; margin-bottom: 12px; background: #f8f9fa; padding:
+10px; border-radius: 4px;}
+.task-item.overdue { border-left-color: #dc3545; }
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Welcome & Attendance Quick Check -->
+    <div class="col-md-6">
+        <div class="statCard d-flex flex-column justify-content-center">
+            <h4 style="color: #1b4332;">Hello, {{ session['fullName'] }}!</h4>
+            <p class="text-muted mb-2">{{ today.strftime('%A, %d %B %Y') }}</p>
+
+            <div class="mt-2">
+                {% if att_status %}
+                <div class="alert alert-success py-2 mb-0 d-inline-block">
+                    <i class="bi bi-check-circle-fill me-2"></i>Attendance Marked: <strong>{{ att_status | capitalize
+                        }}</strong>
+                </div>
+                {% else %}
+                <div class="alert alert-warning py-2 mb-2 d-inline-block">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>You haven't marked attendance today.
+                </div>
+                <br>
+                <a href="/attendance" class="btn btn-sm btn-flora"><i class="bi bi-clipboard-check me-1"></i> Go to
+                    Attendance</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-6">
+        <div class="statCard">
+            <h5 style="color: #1b4332;" class="mb-3"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <a href="/pos" class="btn btn-flora btn-lg text-start"><i class="bi bi-cart me-3"></i> Open Point of
+                    Sale (POS)</a>
+                <a href="/careSchedule" class="btn btn-outline-success text-start"><i class="bi bi-droplet me-3"></i>
+                    View Full Care Schedule</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- My Active Tasks -->
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100">
+            <h5 style="color: #1b4332;" class="mb-3"><i class="bi bi-check2-square me-2"></i>My Active Tasks</h5>
+            {% if active_tasks %}
+            {% for task in active_tasks %}
+            <div class="task-item">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ task.taskTitle }}</strong>
+                    {% if task.status == 'inProgress' %}
+                    <span class="badge bg-primary">In Progress</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                </div>
+                <p class="small text-muted mb-1">{{ task.taskDescription or 'No description provided.' }}</p>
+                {% if task.dueDate %}
+                <small class="text-danger"><i class="bi bi-calendar-event me-1"></i>Due: {{ task.dueDate }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <a href="/tasks" class="btn btn-sm btn-secondary mt-2">Manage My Tasks</a>
+            {% else %}
+            <p class="text-muted mt-2"><i class="bi bi-emoji-smile me-1"></i> You have no pending tasks right now!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Care Tasks Due Today -->
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 h-100">
+            <h5 style="color: #1b4332;" class="mb-3"><i class="bi bi-flower1 me-2"></i>Plant Care Due Today</h5>
+            {% if care_tasks %}
+            <ul class="list-group list-group-flush">
+                {% for care in care_tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                        <strong>{{ care.plantName }}</strong> <br>
+                        <small class="text-muted"><i class="bi bi-tools me-1"></i>{{ care.careType }}</small>
+                        {% if care.nextCheck < today %} <span class="badge bg-danger ms-2">Overdue</span>
+                            {% endif %}
+                    </div>
+                    <a href="/markCareDone/{{ care.careId }}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-check2"></i> Done
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted mt-2"><i class="bi bi-check-circle me-1"></i> All plant care is up to date!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

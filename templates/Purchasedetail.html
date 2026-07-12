@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Purchase Detail{% endblock %}
+{% block pageTitle %}<i class="bi bi-receipt me-2"></i>Purchase Details{% endblock %}
+
+{% block extraStyles %}
+.successIcon { font-size: 4rem; color: #40916c; }
+{% endblock %}
+
+{% block content %}
+<div class="card p-4 text-center mb-4">
+    <div class="successIcon"><i class="bi bi-check-circle-fill"></i></div>
+    <h3 style="color: #1b4332;" class="mt-3">Purchase Recorded Successfully</h3>
+    <p class="text-muted">Purchase ID: #{{ purchase.purchaseId }} | {{ purchase.purchaseDate }}</p>
+</div>
+
+<div class="card p-4 mb-4">
+    <h5 style="color: #1b4332;">Purchase Info</h5>
+    <div class="row mt-2">
+        <div class="col-md-4"><strong>Supplier:</strong> {{ purchase.supplierName }}</div>
+        <div class="col-md-4"><strong>Phone:</strong> {{ purchase.supplierPhone or '—' }}</div>
+        <div class="col-md-4"><strong>Recorded By:</strong> {{ purchase.staffName }}</div>
+    </div>
+</div>
+
+<div class="card p-4 mb-4">
+    <h5 style="color: #1b4332;">Items Purchased</h5>
+    <table class="table mt-2">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Unit Cost</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in purchaseItems %}
+            <tr>
+                <td>{{ item.itemName }}</td>
+                <td>
+                    {% if item.itemType == 'plant' %}
+                    <span class="badge bg-success">Plant</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Accessory</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>Rs. {{ '{:,.2f}'.format(item.unitCost) }}</td>
+                <td>Rs. {{ '{:,.2f}'.format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end fw-bold">Total Cost:</td>
+                <td class="fw-bold" style="color: #1b4332;">Rs. {{ '{:,.2f}'.format(purchase.totalCost) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="d-flex gap-2">
+    <a href="/procurement" class="btn btn-flora px-4"><i class="bi bi-box me-2"></i>New Purchase</a>
+    <a href="/dashboard" class="btn btn-secondary px-4"><i class="bi bi-house me-2"></i>Dashboard</a>
+</div>
+{% endblock %}
